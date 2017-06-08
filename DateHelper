@@ -1,0 +1,267 @@
+import org.joda.time.DateTime;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
+
+import static java.lang.Integer.parseInt;
+
+
+public class DateHelper {
+
+  /**Calculates days between a Date object and current day*/
+  public static int daysBetween(Date dateObject) {
+        
+        /**Pass a date to compare with the current one**/
+        
+        //todays Date
+        Calendar today = Calendar.getInstance();
+        
+        //create Calendar object from Date parameter
+        Calendar dateToCompare = Calendar.getInstance();
+        dateToCompare.setTime(dateObject);
+        
+        //calculate
+        int dayBetweenDates = daysBetween(today, dateToCompare);
+        
+        if (today.getTime().after(dateToCompare.getTime())) {
+            //if todays date is AFTER the date to compare, the date to compare is behind (negative) days behind
+            return -dayBetweenDates;
+        } else {
+            //if todays date is BEFORE the date to compare, the date to compare is ahead X (positive) amount of days
+            return dayBetweenDates;
+        }
+    }
+
+    /**Calculates days between 2 Calendar objects**/
+    public static int daysBetween(Calendar aCalendarDay1, Calendar aCalendarDay2) {
+        Calendar dayOne = (Calendar) aCalendarDay1.clone(),
+                dayTwo = (Calendar) aCalendarDay2.clone();
+
+        if (dayOne.get(Calendar.YEAR) == dayTwo.get(Calendar.YEAR)) {
+            return Math.abs(dayOne.get(Calendar.DAY_OF_YEAR) - dayTwo.get(Calendar.DAY_OF_YEAR));
+        } else {
+            if (dayTwo.get(Calendar.YEAR) > dayOne.get(Calendar.YEAR)) {
+                //swap them
+                Calendar temp = dayOne;
+                dayOne = dayTwo;
+                dayTwo = temp;
+            }
+            int extraDays = 0;
+
+            int dayOneOriginalYearDays = dayOne.get(Calendar.DAY_OF_YEAR);
+
+            while (dayOne.get(Calendar.YEAR) > dayTwo.get(Calendar.YEAR)) {
+                dayOne.add(Calendar.YEAR, -1);
+                // getActualMaximum() important for leap years
+                extraDays += dayOne.getActualMaximum(Calendar.DAY_OF_YEAR);
+            }
+
+            return extraDays - dayTwo.get(Calendar.DAY_OF_YEAR) + dayOneOriginalYearDays;
+        }
+    }
+
+   /**Get current Year in "yyyy" format**/
+    public static String getCurrentMonth() {
+
+        Calendar cal = Calendar.getInstance();
+
+        String yearString = "";
+        if (cal != null) {
+            yearString = new SimpleDateFormat("yyyy", Locale.getDefault()).format(cal.getTime());
+        }
+        return yearString;
+    }
+
+    /**Get current Month in "MMMM" format**/
+    public static String getCurrentMonth() {
+
+        Calendar cal = Calendar.getInstance();
+
+        String monthString = "";
+        if (cal != null) {
+            monthString = new SimpleDateFormat("MMMM", Locale.getDefault()).format(cal.getTime());
+        }
+        return monthString;
+    }
+    
+  
+
+  /**Get current Day in "dd" format**/
+    public static String getCurrentMonth() {
+
+        Calendar cal = Calendar.getInstance();
+
+        String dayString = "";
+        if (cal != null) {
+            dayString = new SimpleDateFormat("dd", Locale.getDefault()).format(cal.getTime());
+        }
+        return dayString;
+    }
+
+    /**Get full date in String format**/
+    public static String getYearMonthDayDate(String aDateString) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        String formattedString = format.format(getDate(aDateString));
+        return formattedString;
+    }
+
+    /**Get full date format for the first day of the current month**/
+    public static String getStartOfCurrentMonth() {
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
+        format.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+        Date date = calendar.getTime();
+        String dateStr = format.format(date);
+
+        return dateStr;
+    }
+
+    /**Get String format of Date from number of MONTHS since current one, given an positive/negative integer
+    * Example, if aMonthDifferential = -2, retrieves current date minus two months. 
+    **/
+    public static String getMonthDiffential(int aMonthDifferential) {
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.MONTH, aMonthDifferential);
+
+        return getDateDifferential(calendar);
+
+    }
+
+    /**Get String format of Date from number of WEEKS since current one, given an positive/negative integer
+    * Example, if aWeekDifferential = -2, retrieves current date minus two weeks. 
+    **/
+    public static String getWeekDifferential(int aWeekDifferential) {
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DATE, aWeekDifferential * 7);
+
+        return getDateDifferential(calendar);
+
+    }
+
+    /**Get String format of Date from number of MONTHS since current one, given an positive/negative integer
+    * Example, if aDayDifferential = -2, retrieves current date minus two days. 
+    **/
+    public static String getDayDifferential(int aDayDifferential) {
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DATE, aDayDifferential);
+
+        return getDateDifferential(calendar);
+
+    }
+
+    /**
+    * Returns Date in String format "yyyy-MM-dd'T'HH:mm:ss" from Calendar object
+    **/
+    public static String getDateDifferential(Calendar aCalendar) {
+
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
+        format.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+        Date date = aCalendar.getTime();
+        String dateStr = format.format(date);
+
+        return dateStr;
+    }
+
+    /**Get hours and minutes from given Date**/
+    public static String getTime(Date aDate) {
+        SimpleDateFormat formatHours = new SimpleDateFormat("HH:mm", Locale.getDefault());
+        String hoursString = formatHours.format(aDate);
+        return hoursString;
+    }
+
+
+    /**Get Date from String**/
+    public static Date getDate(String aDateString) {
+        Date dateParsed = null;
+        
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
+        format.setTimeZone(TimeZone.getTimeZone("UTC"));
+        try {
+            dateParsed = format.parse(aDateString);
+        } catch (ParseException e1) {
+            //We really don't have a usable date
+        }
+        return dateParsed;
+
+    }
+
+    /**
+    * Get todays date in simple format "yyyy-MM-dd"
+    **/
+    public static String getTodaysDateInSimpleFormat() {
+
+        Calendar calendar = Calendar.getInstance();
+
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        format.setTimeZone(TimeZone.getTimeZone("UTC"));
+        String formattedDate = format.format(calendar.getTime());
+
+        return formattedDate;
+    }
+
+   
+
+    /**
+     * Return value i.e. Monday \n 15th September
+     */
+    public static String getDayOfWeekAndDate(String aDayString, String aPrefix, boolean aLineBreak) {
+
+        String date = null;
+        String dayString = "";
+
+        if (aPrefix == null) {
+            SimpleDateFormat dayFormat = new SimpleDateFormat("EEEE", Locale.getDefault());
+            dayString = dayFormat.format(getDate(aDayString));
+        }
+
+        SimpleDateFormat dayMonthFormat = new SimpleDateFormat("d MMMM", Locale.getDefault());
+        String dayMonthString = dayMonthFormat.format(getDate(aDayString));
+
+
+        if (aLineBreak)
+            dayString += "\n";
+        else dayString += " ";
+
+
+        date = dayString + dayMonthString;
+
+
+        return date;
+    }
+
+    /**
+    * Given an integer, returns the suffix accordingly
+    **/
+    public static String ordinalSuffixOf(int i) {
+        int j = i % 10,
+                k = i % 100;
+
+        String language = Locale.getDefault().getLanguage();
+            if (j == 1 && k != 11) {
+                return i + "st";
+            }
+            if (j == 2 && k != 12) {
+                return i + "nd";
+            }
+            if (j == 3 && k != 13) {
+                return i + "rd";
+            }
+            return i + "th";
+     
+      }
+
+ 
+}
